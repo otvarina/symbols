@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЧЕК // генератор термочеков</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="logo">ЧЕК<span class="logo-dim">_MAKER</span></div>
+    <div class="topbar-actions">
+      <button id="btnReset" class="btn btn-ghost">сбросить</button>
+      <button id="btnExport" class="btn btn-solid">скачать PNG ↓</button>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- PREVIEW -->
+    <section class="stage">
+      <div class="stage-inner" id="stageInner">
+        <canvas id="receiptCanvas"></canvas>
+      </div>
+      <div class="stage-hint">предпросмотр — масштаб авто</div>
+    </section>
+
+    <!-- CONTROLS -->
+    <aside class="panel">
+
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="text">Текст</button>
+        <button class="tab" data-tab="photo">Фото</button>
+        <button class="tab" data-tab="qr">QR-код</button>
+        <button class="tab" data-tab="edges">Края</button>
+        <button class="tab" data-tab="fx">Эффекты</button>
+      </nav>
+
+      <!-- TEXT TAB -->
+      <div class="tabpanel active" data-panel="text">
+        <div class="field">
+          <label>Размер чека</label>
+          <div class="row">
+            <div class="subfield">
+              <span>Ширина</span>
+              <input type="range" id="receiptWidth" min="500" max="900" value="680">
+            </div>
+            <div class="subfield">
+              <span>Длина</span>
+              <input type="range" id="receiptHeight" min="900" max="2400" value="1500">
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Строки текста</label>
+          <div id="textLines" class="text-lines"></div>
+          <button id="addLine" class="btn btn-ghost btn-small">+ добавить строку</button>
+        </div>
+      </div>
+
+      <!-- PHOTO TAB -->
+      <div class="tabpanel" data-panel="photo">
+        <div class="field">
+          <label>Изображение</label>
+          <input type="file" id="photoInput" accept="image/*" class="file-input">
+          <button id="removePhoto" class="btn btn-ghost btn-small">удалить фото</button>
+        </div>
+        <div class="field">
+          <label>Контраст <span class="val" id="val-photoContrast"></span></label>
+          <input type="range" id="photoContrast" min="50" max="200" value="120">
+        </div>
+        <div class="field">
+          <label>Яркость <span class="val" id="val-photoBrightness"></span></label>
+          <input type="range" id="photoBrightness" min="50" max="200" value="105">
+        </div>
+        <div class="field">
+          <label>Зерно печати <span class="val" id="val-photoGrain"></span></label>
+          <input type="range" id="photoGrain" min="0" max="100" value="55">
+        </div>
+        <div class="field">
+          <label>Размер фото <span class="val" id="val-photoScale"></span></label>
+          <input type="range" id="photoScale" min="30" max="100" value="78">
+        </div>
+        <div class="field checkbox-field">
+          <label><input type="checkbox" id="photoDither" checked> точечный растр (dither)</label>
+        </div>
+      </div>
+
+      <!-- QR TAB -->
+      <div class="tabpanel" data-panel="qr">
+        <div class="field">
+          <label>Ссылка / текст (сайт, Telegram и т.д.)</label>
+          <input type="text" id="qrText" placeholder="https://t.me/ваш_канал" value="https://t.me/">
+        </div>
+        <div class="field">
+          <label>Показывать QR-код</label>
+          <input type="checkbox" id="qrEnabled" checked>
+        </div>
+        <div class="field">
+          <label>Размер <span class="val" id="val-qrSize"></span></label>
+          <input type="range" id="qrSize" min="120" max="320" value="220">
+        </div>
+        <div class="field">
+          <label>Подпись под кодом</label>
+          <input type="text" id="qrCaption" value="СКАНИРУЙ">
+        </div>
+      </div>
+
+      <!-- EDGES TAB -->
+      <div class="tabpanel" data-panel="edges">
+        <div class="field">
+          <label>Верхний край</label>
+          <select id="edgeTop">
+            <option value="straight">прямой</option>
+            <option value="zigzag" selected>зигзаг (как у кассы)</option>
+            <option value="perforated">перфорация</option>
+            <option value="torn">рваный</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Нижний край</label>
+          <select id="edgeBottom">
+            <option value="straight">прямой</option>
+            <option value="zigzag" selected>зигзаг (как у кассы)</option>
+            <option value="perforated">перфорация</option>
+            <option value="torn">рваный</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Размер зубцов/рваности <span class="val" id="val-edgeSize"></span></label>
+          <input type="range" id="edgeSize" min="6" max="30" value="14">
+        </div>
+      </div>
+
+      <!-- FX TAB -->
+      <div class="tabpanel" data-panel="fx">
+        <div class="field">
+          <label>Текстура бумаги <span class="val" id="val-paperGrain"></span></label>
+          <input type="range" id="paperGrain" min="0" max="100" value="30">
+        </div>
+        <div class="field">
+          <label>Тонировка (старение) <span class="val" id="val-paperTint"></span></label>
+          <input type="range" id="paperTint" min="0" max="100" value="12">
+        </div>
+        <div class="field">
+          <label>Потёкшие чернила <span class="val" id="val-inkBleed"></span></label>
+          <input type="range" id="inkBleed" min="0" max="100" value="0">
+        </div>
+        <div class="field">
+          <label>Выцветание чернил <span class="val" id="val-inkFade"></span></label>
+          <input type="range" id="inkFade" min="0" max="100" value="15">
+        </div>
+        <div class="field">
+          <label>Выгорание (термо-ожог) <span class="val" id="val-thermalBurn"></span></label>
+          <input type="range" id="thermalBurn" min="0" max="100" value="0">
+        </div>
+        <div class="field">
+          <label>Мятость <span class="val" id="val-crumple"></span></label>
+          <input type="range" id="crumple" min="0" max="100" value="20">
+        </div>
+        <div class="field">
+          <button id="reshuffle" class="btn btn-ghost btn-small">↻ случайные складки / зерно</button>
+        </div>
+      </div>
+
+    </aside>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
